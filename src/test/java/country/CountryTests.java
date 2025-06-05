@@ -7,9 +7,11 @@ import io.restassured.RestAssured;
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.response.Response;
 import model.Country;
+import org.hamcrest.Matcher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
@@ -112,7 +114,7 @@ public class CountryTests {
     }
 
     @Test
-    void verifyGetCountryApiWithFilterGreaterThan(){
+    void verifyGetCountryApiWithFilterGreaterThan() {
         Response response = RestAssured.given().log().all()
                 .queryParam(GDP_FILTER, 5000)
                 .queryParam(OPERATOR_FILTER, ">")
@@ -126,8 +128,39 @@ public class CountryTests {
         //3. Verify body
         List<Country> actual = response.body().as(new TypeRef<>() {
         });
-        for (Country country : actual){
+        for (Country country : actual) {
             assertThat(country.getGdp(), greaterThan(5000f));
+        }
+    }
+
+    static Stream<Arguments> getCountryWithFilterProvider() {
+        return Stream.of(
+                Arguments.of(">", 5000, greaterThan(5000f)),
+                Arguments.of(">=", 5000, greaterThanOrEqualTo(5000f)),
+                Arguments.of("<", 5000, lessThan(5000f)),
+                Arguments.of("<=", 5000, lessThanOrEqualTo(5000f)),
+                Arguments.of("==", 5000, equalTo(5000f))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getCountryWithFilterProvider")
+    void verifyGetCountryApiWithFilter(String operator, int gdp, Matcher expected) {
+        Response response = RestAssured.given().log().all()
+                .queryParam(GDP_FILTER, gdp)
+                .queryParam(OPERATOR_FILTER, operator)
+                .get(GET_COUNTRY_WITH_FILTER_API);
+
+        //1. Verify status
+        response.then().log().all().statusCode(200);
+        //2. Verify headers
+        response.then().header(X_POWERED_BY_HEADER, equalTo(X_POWERED_BY_HEADER_VALUE))
+                .header(CONTENT_TYPE_HEADER, equalTo(CONTENT_TYPE_HEADER_VALUE));
+        //3. Verify body
+        List<Country> actual = response.body().as(new TypeRef<>() {
+        });
+        for (Country country : actual) {
+            assertThat(country.getGdp(), expected);
         }
     }
 
