@@ -16,18 +16,14 @@ import java.util.stream.Stream;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static utils.ConstantUtils.*;
 
 public class LoginTest {
-    private static final String LOGIN_API = "/api/login";
-    private static final String X_POWERED_BY_HEADER = "X-Powered-By";
-    private static final String X_POWERED_BY_HEADER_VALUE = "Express";
-    private static final String CONTENT_TYPE_HEADER = "Content-Type";
-    private static final String RESPONSE_CONTENT_TYPE_HEADER_VALUE = "application/json; charset=utf-8";
-    private static final String REQUEST_CONTENT_TYPE_HEADER_VALUE = "application/json";
+
     @BeforeAll
     static void setup() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = 3000;
+        RestAssured.baseURI = HOST;
+        RestAssured.port = PORT;
     }
 
 
@@ -45,9 +41,9 @@ public class LoginTest {
     }
 
     @Test
-    void verifyLoginSuccessful(){
+    void verifyLoginSuccessful() {
         LoginRequest loginRequest = new LoginRequest("staff", "1234567890");
-        Response response =  RestAssured.given().log().all()
+        Response response = RestAssured.given().log().all()
                 .header(CONTENT_TYPE_HEADER, REQUEST_CONTENT_TYPE_HEADER_VALUE)
                 .body(loginRequest)
                 .post(LOGIN_API);
@@ -63,19 +59,19 @@ public class LoginTest {
     }
 
     static Stream<Arguments> loginProvider() {
-       return Stream.of(
-               Arguments.of(new LoginRequest("", "1234567890")),
-               Arguments.of(new LoginRequest(null, "1234567890")),
-               Arguments.of(new LoginRequest("staff", "")),
-               Arguments.of(new LoginRequest("staff", null)),
-               Arguments.of(new LoginRequest("staff", "123"))
-       );
+        return Stream.of(
+                Arguments.of(new LoginRequest("", "1234567890")),
+                Arguments.of(new LoginRequest(null, "1234567890")),
+                Arguments.of(new LoginRequest("staff", "")),
+                Arguments.of(new LoginRequest("staff", null)),
+                Arguments.of(new LoginRequest("staff", "123"))
+        );
     }
 
     @ParameterizedTest
     @MethodSource("loginProvider")
-    void verifyLoginFail(LoginRequest loginRequest){
-        Response response =  RestAssured.given().log().all()
+    void verifyLoginFail(LoginRequest loginRequest) {
+        Response response = RestAssured.given().log().all()
                 .header(CONTENT_TYPE_HEADER, REQUEST_CONTENT_TYPE_HEADER_VALUE)
                 .body(loginRequest)
                 .post(LOGIN_API);
