@@ -1,15 +1,15 @@
-package login;
+package testCase.login;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import model.login.LoginError;
 import model.login.LoginRequest;
 import model.login.LoginResponse;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import testCase.MasterTest;
 
 import java.util.stream.Stream;
 
@@ -18,14 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static utils.ConstantUtils.*;
 
-public class LoginTest {
-
-    @BeforeAll
-    static void setup() {
-        RestAssured.baseURI = HOST;
-        RestAssured.port = PORT;
-    }
-
+public class LoginTest extends MasterTest {
 
     @Test
     void verifySchemaOfLoginApi() {
