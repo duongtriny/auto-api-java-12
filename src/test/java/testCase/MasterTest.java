@@ -36,7 +36,7 @@ public class MasterTest {
                     .post(LOGIN_API);
             response.then().log().all().statusCode(200);
             LoginResponse loginResponse = response.body().as(LoginResponse.class);
-            token = loginResponse.getToken();
+            token = String.format("Bearer %s", loginResponse.getToken());
             tokenTimeout = loginResponse.getTimeout() * 80 / 100;
             retrieveTokenMoment = LocalDateTime.now();
         }
