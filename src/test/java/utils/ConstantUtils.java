@@ -6,6 +6,7 @@ public class ConstantUtils {
     public static final String LOGIN_API = "/api/login";
     public static final String CREATE_USER_API = "/api/user";
     public static final String GET_USER_API = "/api/user/{userId}";
+    public static final String DELETE_USER_API = "/api/user/{userId}";
     public static final String GET_COUNTRIES_API = "/api/v1/countries";
     public static final String GET_COUNTRY_API = "/api/v1/countries/{code}";
     public static final String GET_COUNTRY_WITH_FILTER_API = "/api/v3/countries";

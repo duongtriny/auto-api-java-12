@@ -3,10 +3,12 @@ package testCase.user;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import model.user.*;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import testCase.MasterTest;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.javacrumbs.jsonunit.JsonMatchers.jsonEquals;
@@ -20,6 +22,20 @@ public class CreateUserTest extends MasterTest {
     private static final String[] IGNORE_FIELDS = {"id", "createdAt", "updatedAt", "addresses[*].id", "addresses[*].customerId",
             "addresses[*].createdAt", "addresses[*].updatedAt"};
     private static final String EMAIL_TEMPLATE = "auto_api_%s@abc.com";
+    private static List<String> ids = new ArrayList<>();
+
+    @AfterAll
+    static void tearDown() {
+        for (String id : ids) {
+            RestAssured.given().log().all()
+                    .header(CONTENT_TYPE_HEADER, REQUEST_CONTENT_TYPE_HEADER_VALUE)
+                    .header(AUTHORIZATION_HEADER, token)
+                    .delete(DELETE_USER_API, id)
+                    .then()
+                    .log()
+                    .all();
+        }
+    }
 
     @Test
     void verifyCreateUserSchema() {
@@ -48,7 +64,7 @@ public class CreateUserTest extends MasterTest {
         UserResponse userResponse = createUserResponse.body().as(UserResponse.class);
         assertThat(userResponse.getId(), not(emptyOrNullString()));
         assertThat(userResponse.getMessage(), equalTo("Customer created"));
-
+        ids.add(userResponse.getId());
         //5. Double check that user existing in the system or not by getUserApi
         Response getUserResponse = getUser(userResponse);
         LocalDateTime timeAfterCreate = LocalDateTime.now();
@@ -98,6 +114,7 @@ public class CreateUserTest extends MasterTest {
         UserResponse userResponse = createUserResponse.body().as(UserResponse.class);
         assertThat(userResponse.getId(), not(emptyOrNullString()));
         assertThat(userResponse.getMessage(), equalTo("Customer created"));
+        ids.add(userResponse.getId());
 
         //5. Double check that user existing in the system or not by getUserApi
         Response getUserResponse = getUser(userResponse);
