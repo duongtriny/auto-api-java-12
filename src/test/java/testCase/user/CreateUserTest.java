@@ -2,14 +2,23 @@ package testCase.user;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import model.user.*;
+import model.dao.user.AddressDao;
+import model.dao.user.UserDao;
+import model.dto.user.*;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import testCase.MasterTest;
+import utils.DbUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static net.javacrumbs.jsonunit.JsonMatchers.jsonEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,6 +26,7 @@ import static org.hamcrest.Matchers.*;
 import static utils.ConstantUtils.*;
 import static utils.DateTimeUtils.parseTimeToCurrentTimeZone;
 import static utils.DateTimeUtils.verifyDateTime;
+import static utils.DbUtils.getUserFromDb;
 
 public class CreateUserTest extends MasterTest {
     private static final String[] IGNORE_FIELDS = {"id", "createdAt", "updatedAt", "addresses[*].id", "addresses[*].customerId",
@@ -140,6 +150,46 @@ public class CreateUserTest extends MasterTest {
             verifyDateTime(timeBeforeCreate, timeAfterCreate, userAddressCreateAtDate);
             LocalDateTime userAddressUpdateAtDate = parseTimeToCurrentTimeZone(addressResponse.getCreatedAt());
             verifyDateTime(timeBeforeCreate, timeAfterCreate, userAddressUpdateAtDate);
+        }
+    }
+
+    @Test
+    void verifyCreateUserSuccessfulWithDb() {
+        //Create UserAddress
+        UserAddressRequest userAddressRequest = UserAddressRequest.getDefault();
+        //Create user
+        UserRequest userRequest = UserRequest.getDefault();
+        userRequest.setEmail(String.format(EMAIL_TEMPLATE, System.currentTimeMillis()));
+        userRequest.setAddresses(List.of(userAddressRequest));
+        LocalDateTime timeBeforeCreate = LocalDateTime.now();
+        Response createUserResponse = createUser(userRequest);
+        //1. Verify status code
+        createUserResponse.then().log().all().statusCode(200);
+        //3. Verify headers
+        createUserResponse.then().header(X_POWERED_BY_HEADER, equalTo(X_POWERED_BY_HEADER_VALUE))
+                .header(CONTENT_TYPE_HEADER, equalTo(RESPONSE_CONTENT_TYPE_HEADER_VALUE));
+        //4. Verify body
+        UserResponse userResponse = createUserResponse.body().as(UserResponse.class);
+        assertThat(userResponse.getId(), not(emptyOrNullString()));
+        assertThat(userResponse.getMessage(), equalTo("Customer created"));
+        ids.add(userResponse.getId());
+        //5. Double check that user existing in the system or not by getUserApi
+        Response getUserResponse = getUser(userResponse);
+        LocalDateTime timeAfterCreate = LocalDateTime.now();
+        //6. Verify status
+        getUserResponse.then().log().all().statusCode(200);
+        //7. Verify user has been saved successful in DB
+        UserDao actualUserDb = getUserFromDb(userResponse.getId());
+        assertThat(actualUserDb, jsonEquals(userRequest)
+                .whenIgnoringPaths(IGNORE_FIELDS));
+        verifyDateTime(timeBeforeCreate, timeAfterCreate, actualUserDb.getCreatedAt());
+        verifyDateTime(timeBeforeCreate, timeAfterCreate, actualUserDb.getUpdatedAt());
+
+        for (AddressDao addressResponse : actualUserDb.getAddresses()) {
+            assertThat(addressResponse.getCustomerId().toString(), equalTo(userResponse.getId()));
+            assertThat(addressResponse.getId().toString(), not(emptyOrNullString()));
+            verifyDateTime(timeBeforeCreate, timeAfterCreate, addressResponse.getCreatedAt());
+            verifyDateTime(timeBeforeCreate, timeAfterCreate, addressResponse.getUpdatedAt());
         }
     }
 
