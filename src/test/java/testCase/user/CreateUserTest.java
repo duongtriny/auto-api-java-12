@@ -5,20 +5,13 @@ import io.restassured.response.Response;
 import model.dao.user.AddressDao;
 import model.dao.user.UserDao;
 import model.dto.user.*;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import testCase.MasterTest;
-import utils.DbUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static net.javacrumbs.jsonunit.JsonMatchers.jsonEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,7 +24,6 @@ import static utils.DbUtils.getUserFromDb;
 public class CreateUserTest extends MasterTest {
     private static final String[] IGNORE_FIELDS = {"id", "createdAt", "updatedAt", "addresses[*].id", "addresses[*].customerId",
             "addresses[*].createdAt", "addresses[*].updatedAt"};
-    private static final String EMAIL_TEMPLATE = "auto_api_%s@abc.com";
     private static List<String> ids = new ArrayList<>();
 
     @AfterAll
@@ -200,7 +192,7 @@ public class CreateUserTest extends MasterTest {
                 .get(GET_USER_API, userResponse.getId());
     }
 
-    private static Response createUser(UserRequest userRequest) {
+    public static Response createUser(UserRequest userRequest) {
         return RestAssured.given().log().all()
                 .header(CONTENT_TYPE_HEADER, REQUEST_CONTENT_TYPE_HEADER_VALUE)
                 .header(AUTHORIZATION_HEADER, token)

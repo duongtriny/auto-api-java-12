@@ -1,0 +1,31 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/get-card-info-by-type",
+        "headers": {
+          "api-key": {
+            "equalTo": "a-private-key"
+          }
+        },
+        "queryParameters": {
+          "type": {
+            "equalTo": "SILVER"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": {
+          "cardColor": "Silver",
+          "textColor": "Black",
+          "material": "Plastic"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}
