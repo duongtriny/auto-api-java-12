@@ -1,8 +1,8 @@
 package utils;
 
 public class ConstantUtils {
-    public static final String HOST = "http://localhost";
-    public static final int PORT = 3000;
+    public static final String HOST = EnvUtils.Env().get("host");
+    public static final int PORT = Integer.parseInt(EnvUtils.Env().get("port"));
     public static final String LOGIN_API = "/api/login";
     public static final String CREATE_USER_API = "/api/user";
     public static final String GET_USER_API = "/api/user/{userId}";

@@ -21,6 +21,7 @@ public class CountryQueryTest {
     @BeforeAll
     static void setup() {
         RestAssured.baseURI = "https://countries.trevorblades.com";
+        RestAssured.port = 443;
     }
 
     @Test
